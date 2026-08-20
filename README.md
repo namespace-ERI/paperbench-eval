@@ -1,5 +1,7 @@
 # PaperBench Evaluation Runtime
 
+[中文版说明](README.zh-CN.md)
+
 This repository is a standalone runtime for evaluating research-reproduction
 agents with PaperBench. It contains the code required to run the complete
 evaluation pipeline:
@@ -160,7 +162,7 @@ The separate ModelScope dataset provides this exact layout under `data/`, plus:
 skills/<paper_or_topic>/skill/   Distilled skill trees used by skill-enabled solvers
 data/judge_eval/                 JudgeEval reference submissions and labels
 docker/dockerfiles/              Dockerfile snapshot and image manifest
-docker/images/                   Optional large prebuilt image archives
+docker/images/                   Optional pb-env-codex:latest image archive
 ```
 
 After the ModelScope dataset is created, set its id once:
@@ -183,8 +185,10 @@ Download JudgeEval inputs only when evaluating a judge implementation:
 scripts/fetch_modelscope_assets.sh .paperbench-assets --with-judge-eval
 ```
 
-Download prebuilt image archives only when they are published and local image
-builds are undesirable:
+The ModelScope release publishes only the preinstalled
+`pb-env-codex:latest` image. The standard `pb-env:latest` and
+`pb-reproducer:latest` images can be built locally from the Dockerfiles; they
+are intentionally not included as large archives:
 
 ```bash
 scripts/fetch_modelscope_assets.sh .paperbench-assets --with-images
@@ -251,8 +255,9 @@ with:
 docker load -i "$PAPERBENCH_ASSETS_DIR/docker/images/<archive-name>.tar"
 ```
 
-Run `docker images pb-env pb-reproducer pb-env-codex` to verify the expected
-tags before a rollout.
+Run `docker images pb-env-codex` to verify the prebuilt agent image before a
+Codex or PI rollout. For a full local pipeline, also build and verify
+`pb-env:latest` and `pb-reproducer:latest`.
 
 ## Evaluation Stages And Outputs
 
