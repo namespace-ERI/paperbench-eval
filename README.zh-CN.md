@@ -10,8 +10,8 @@ agent 的完整评测流程跑起来：
 3. **Grading**：根据 rubric 对执行结果进行分项评分。
 4. **JudgeEval**：可选地评估 judge 本身在参考提交上的表现。
 
-代码放在 GitHub，较大的任务数据、原题包、skills、JudgeEval 输入和
-预装 agent 镜像放在 ModelScope：
+代码、Dockerfile 和技能树放在 GitHub，较大的任务数据、JudgeEval
+输入和预装 agent 镜像放在 ModelScope：
 
 - GitHub：`https://github.com/namespace-ERI/paperbench-eval`
 - ModelScope：`YuyangHu/paperbench-assets`
@@ -28,6 +28,7 @@ GitHub 仓库包含：
   和 `preparedness_turn_completer` 最小源码。
 - `experiments/splits/`：`all`、`debug`、`dev`、`lite`、`testing` 等官方
   split 文件。
+- `sota/skills/`：供 Codex/PI skill solver 使用的 distilled skill tree。
 - `paperbench/Dockerfile.base`：标准 rollout/judge 基础镜像定义。
 - `paperbench/reproducer.Dockerfile`：执行 `reproduce.sh` 的干净容器定义。
 - `paperbench/solvers/codexagent/Dockerfile`：预装 Codex 和 PI 的 agent 镜像
@@ -61,17 +62,7 @@ paperbench-assets/
 │   └── judge_eval/
 │       ├── <paper_or_topic>/
 │       └── ...
-├── skills/
-│   └── <paper_or_topic>/
-│       └── skill/
-│           ├── SKILL.md
-│           └── ...
 └── docker/
-    ├── dockerfiles/
-    │   ├── Dockerfile.base
-    │   ├── reproducer.Dockerfile
-    │   ├── codexagent.Dockerfile
-    │   └── manifest.json
     └── images/
         └── pb-env-codex-latest.tar
 ```
@@ -82,9 +73,11 @@ paperbench-assets/
 | --- | --- | --- |
 | `data/papers/` | 原题论文、题目元数据、rubric、addendum 和论文附件 | 是 |
 | `data/judge_eval/` | JudgeEval 的参考提交和标签 | 只有评估 judge 时需要 |
-| `skills/` | 供 Codex/PI skill solver 上传到容器的 skill tree | 使用 skills 时需要 |
-| `docker/dockerfiles/` | 发布时使用的 Dockerfile 快照和镜像清单 | 用于复现构建和核对 |
 | `docker/images/pb-env-codex-latest.tar` | 预装 Codex 0.138.0 和 PI 0.84.0 的 agent 镜像 | Codex/PI rollout 时需要 |
+
+技能树已经随 GitHub 仓库发布，位于 `sota/skills/`，不需要从
+ModelScope 另外下载。Dockerfile 快照和构建定义也都在 GitHub 仓库里，
+ModelScope 只保留 `data/` 和可选镜像归档。
 
 ModelScope **只上传一张预构建镜像**：
 
@@ -156,7 +149,7 @@ export PAPERBENCH_MODELSCOPE_DATASET="YuyangHu/paperbench-assets"
 source /share/project/yuyang/workspace/setvpn.sh
 ```
 
-下载普通 rollout/reproduction/grading 所需的论文包和 skills：
+下载普通 rollout/reproduction/grading 所需的论文包：
 
 ```bash
 scripts/fetch_modelscope_assets.sh .paperbench-assets
@@ -196,11 +189,12 @@ paperbench-eval/
 │   ├── data/
 │   │   ├── papers/
 │   │   └── judge_eval/
-│   ├── skills/
 │   └── docker/
-│       ├── dockerfiles/
 │       └── images/
-└── paperbench/
+│           └── pb-env-codex-latest.tar
+├── paperbench/
+└── sota/
+    └── skills/
 ```
 
 对应关系：
@@ -210,15 +204,16 @@ paperbench-eval/
   `.paperbench-assets/data/papers/<paper_id>/`。
 - 原题论文和题目相关文件位于
   `.paperbench-assets/data/papers/<paper_id>/`。
-- 某篇论文的 skill 位于
-  `.paperbench-assets/skills/<paper_id>/skill/`。例如 `pinn` 的 skill：
-  `.paperbench-assets/skills/pinn/skill/`。
+- 某篇论文的 skill 位于 GitHub 仓库里的 `sota/skills/<paper_id>/skill/`。
+  例如 `pinn` 的 skill 是 `sota/skills/pinn/skill/`。
 - JudgeEval 输入位于
   `.paperbench-assets/data/judge_eval/`。
-- Dockerfile 快照和清单位于
-  `.paperbench-assets/docker/dockerfiles/`。
 - 预构建镜像归档位于
   `.paperbench-assets/docker/images/pb-env-codex-latest.tar`。
+
+技能树已经随 GitHub 仓库发布，不需要从 ModelScope 另外下载。
+Dockerfile 快照和构建定义也都在 GitHub 仓库里，ModelScope 只保留
+`data/` 和可选镜像归档。
 
 ### 校验论文包
 
@@ -324,7 +319,7 @@ uv run python -m paperbench.nano.entrypoint \
 先选择与目标论文对应的 skill tree：
 
 ```bash
-export PAPERBENCH_SKILL_DIR="$PAPERBENCH_ASSETS_DIR/skills/pinn/skill"
+export PAPERBENCH_SKILL_DIR="$PWD/sota/skills/pinn/skill"
 ```
 
 然后运行：
@@ -353,7 +348,7 @@ uv run python -m paperbench.nano.entrypoint \
 预装镜像同时包含 PI，因此可以使用同一张镜像：
 
 ```bash
-export PAPERBENCH_SKILL_DIR="$PAPERBENCH_ASSETS_DIR/skills/pinn/skill"
+export PAPERBENCH_SKILL_DIR="$PWD/sota/skills/pinn/skill"
 
 uv run python -m paperbench.nano.entrypoint \
   paperbench.paper_split=pinn \
@@ -468,4 +463,3 @@ docker run --rm --gpus all ubuntu:24.04 nvidia-smi
 不要把 `record/`、`runs/`、导出的 submission 或 trajectory 复制回
 GitHub 仓库，也不要把 API key 写入 README、shell script 或 tracked
 文件。
-

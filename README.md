@@ -13,9 +13,9 @@ evaluation pipeline:
 4. **Judge evaluation**: optional evaluation of a judge against the included
    JudgeEval reference submissions.
 
-The repository intentionally contains source code only. The official task
-packages, distilled skills, JudgeEval assets, and optional prebuilt Docker image
-archives live in a separate ModelScope dataset.
+The repository intentionally contains source code, Dockerfiles, and distilled
+skill trees. The official task packages, JudgeEval assets, and optional
+prebuilt Docker image archives live in a separate ModelScope dataset.
 
 ## Publication Scope
 
@@ -28,6 +28,7 @@ Included here:
   without a sibling monorepo checkout.
 - `experiments/splits/`: official `all`, `debug`, `dev`, `lite`, and `testing`
   split files.
+- `sota/skills/`: distilled skill trees used by skill-enabled solvers.
 - `paperbench/Dockerfile.base`, `paperbench/reproducer.Dockerfile`, and the
   Codex/PI Dockerfiles.
 - focused tests for registry resolution, rollout plumbing, reproduction, and
@@ -40,7 +41,8 @@ Deliberately excluded:
 - `record/`, `exports/`, `runs/`, `sota/state/`, and `sota/cases/`;
 - task-generation code and all `factory/` content;
 - local API keys, caches, manual input files, and temporary fixes;
-- official paper packages and skills, which must be downloaded separately.
+- official paper packages and JudgeEval assets, which must be downloaded
+  separately.
 
 ## Repository Layout
 
@@ -55,7 +57,7 @@ paperbench/                         Core evaluation runtime
   reproducer.Dockerfile             Fresh reproduction image definition
 vendor/                             Runtime dependencies vendored for standalone installation
 experiments/splits/                 Official and lightweight paper id lists
-scripts/fetch_modelscope_assets.sh  Downloads external data, skills, and optional images
+scripts/fetch_modelscope_assets.sh  Downloads external paper data and optional images
 scripts/build_agent_images.sh       Builds the standard and optional rollout images
 scripts/verify_release_scope.sh     Rejects tracked trajectories, data, factory, and credentials
 ```
@@ -156,14 +158,10 @@ ${PAPERBENCH_DATA_DIR}/papers/<paper_id>/
   assets/
 ```
 
-The separate ModelScope dataset provides this exact layout under `data/`, plus:
-
-```text
-skills/<paper_or_topic>/skill/   Distilled skill trees used by skill-enabled solvers
-data/judge_eval/                 JudgeEval reference submissions and labels
-docker/dockerfiles/              Dockerfile snapshot and image manifest
-docker/images/                   Optional pb-env-codex:latest image archive
-```
+The separate ModelScope dataset provides the paper packages under `data/`,
+JudgeEval inputs under `data/judge_eval/`, and the optional prebuilt image
+under `docker/images/`. The distilled skill trees are part of this GitHub
+repository under `sota/skills/`.
 
 After the ModelScope dataset is created, set its id once:
 
@@ -171,7 +169,7 @@ After the ModelScope dataset is created, set its id once:
 export PAPERBENCH_MODELSCOPE_DATASET="YuyangHu/paperbench-assets"
 ```
 
-Download rollout data and skills:
+Download paper packages:
 
 ```bash
 scripts/fetch_modelscope_assets.sh .paperbench-assets
@@ -196,6 +194,10 @@ scripts/fetch_modelscope_assets.sh .paperbench-assets --with-images
 
 The download directory is ignored by Git. Do not move its contents into this
 repository's tracked `data/` path.
+
+The skill trees are already in this repository under `sota/skills/`. Point
+`paperbench.solver.skills_dir` at `sota/skills/<paper_id>/skill` when you want
+Codex or PI to use them.
 
 Verify the registry sees the expected paper packages:
 
@@ -379,7 +381,7 @@ uv run python -m paperbench.nano.entrypoint \
 The non-vanilla Codex solver uploads the selected `skill` directory:
 
 ```bash
-export PAPERBENCH_SKILL_DIR="$PAPERBENCH_ASSETS_DIR/skills/pinn/skill"
+export PAPERBENCH_SKILL_DIR="$PWD/sota/skills/pinn/skill"
 
 uv run python -m paperbench.nano.entrypoint \
   paperbench.paper_split=pinn \
@@ -429,7 +431,7 @@ uv run python -m paperbench.nano.entrypoint \
 Use `PiAgentSolver` and give it one extracted skill tree:
 
 ```bash
-export PAPERBENCH_SKILL_DIR="$PAPERBENCH_ASSETS_DIR/skills/pinn/skill"
+export PAPERBENCH_SKILL_DIR="$PWD/sota/skills/pinn/skill"
 
 uv run python -m paperbench.nano.entrypoint \
   paperbench.paper_split=pinn \

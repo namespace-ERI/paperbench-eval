@@ -6,12 +6,11 @@ usage() {
 Usage:
   scripts/fetch_modelscope_assets.sh [destination] [--with-judge-eval] [--with-images] [--force]
 
-Downloads PaperBench assets from the public ModelScope dataset using Git LFS.
+Downloads PaperBench paper packages and optional image archives from the public
+ModelScope dataset using Git LFS.
 
 By default this downloads:
   - data/papers: official paper packages used by rollout, reproduction, and grading
-  - skills: paper-aligned distilled skill trees
-  - docker/dockerfiles: exact Dockerfiles and image manifest
 
 Options:
   --with-judge-eval  Also download data/judge_eval for judge-quality evaluation.
@@ -69,7 +68,7 @@ REMOTE="https://www.modelscope.cn/datasets/${DATASET_ID}.git"
 GIT_LFS_SKIP_SMUDGE=1 git clone "${REMOTE}" "${DESTINATION}"
 git -C "${DESTINATION}" lfs install --local
 
-INCLUDE_PATTERNS="data/papers/**,skills/**,docker/dockerfiles/**"
+INCLUDE_PATTERNS="data/papers/**"
 if [[ "${WITH_JUDGE_EVAL}" == true ]]; then
   INCLUDE_PATTERNS="${INCLUDE_PATTERNS},data/judge_eval/**"
 fi
@@ -87,5 +86,5 @@ For PaperBench commands:
   export PAPERBENCH_DATA_DIR="\${PAPERBENCH_ASSETS_DIR}/data"
 
 To use skills, pass an individual skill tree such as:
-  paperbench.solver.skills_dir="\${PAPERBENCH_ASSETS_DIR}/skills/pinn/skill"
+  paperbench.solver.skills_dir="\$(pwd)/sota/skills/pinn/skill"
 EOF
