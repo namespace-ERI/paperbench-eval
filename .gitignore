@@ -1,0 +1,53 @@
+# Credentials and local configuration
+.env
+.secrets/
+paperbench/solvers/agent.env
+sota/.env
+
+# Python, tooling, and editor state
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+*.egg-info/
+.DS_Store
+
+# All rollout, checkpoint, score, and diagnostic output is local-only.
+runs/
+record/
+exports/
+reports/
+results/
+records/
+*.jsonl
+*.tar
+*.tar.gz
+*.tar.zst
+*.zip
+
+# External evaluation assets are downloaded from ModelScope, never committed here.
+data/
+.paperbench-assets/
+docker-images/
+
+# Explicitly out of publication scope.
+factory/
+sota/cases/
+sota/state/
+sota/cache/
+sota/manual_inputs/
+sota/monitoring/
+sota/tmp/
+sota/tmp_*/
+sota/artifacts/
+
+# Do not accidentally publish generated web or notebook artifacts.
+site/
+build/
+dist/

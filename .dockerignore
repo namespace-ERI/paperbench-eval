@@ -1,0 +1,10 @@
+runs/
+record/
+exports/
+factory/
+sota/cases/
+sota/state/
+.paperbench-assets/
+.env
+.venv/
+__pycache__/
